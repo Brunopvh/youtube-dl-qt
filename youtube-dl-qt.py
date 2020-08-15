@@ -25,6 +25,8 @@ os.chdir(dir_of_executable)
 
 from lib.youtube_lib import YoutubeDownload, ConfigureDirs
 
+__version__='2020-08-15'
+
 class MessageWindow:
 	'''
 	https://doc.qt.io/qtforpython/PySide2/QtWidgets/QMessageBox.html

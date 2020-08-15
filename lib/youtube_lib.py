@@ -11,7 +11,7 @@ class ConfigureDirs:
     def __init__(self):
         self.home = Path.home()
         self.destination_videos = self.home
-        if kernel_type() == 'Linux':
+        if (kernel_type() == 'Linux') or (kernel_type() == 'FreeBSD'):
             self.dir_config = os.path.abspath(os.path.join(self.home, '.config', 'youtube-dlq'))
             self.file_config = os.path.abspath(os.path.join(self.dir_config, 'youtube-dlq.conf'))
             self.script_youtube_dl_path = os.path.abspath(os.path.join(self.home, '.local', 'bin'))
@@ -95,8 +95,9 @@ class ConfigureDirs:
             return
 
         print(f'Instalando {self.scriptYoutubeDl}')
-        if kernel_type() == 'Linux':
+        if (kernel_type() == 'Linux') or (kernel_type() == 'FreeBSD'):
             urllib.request.urlretrieve(url_ytdl_linux, self.scriptYoutubeDl)
+            os.system(f'chmod +x {self.scriptYoutubeDl}')
         elif kernel_type() == 'Windows':
             tempDir =  tempfile.mkdtemp()
             os.chdir(tempDir)
