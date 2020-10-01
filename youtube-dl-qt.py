@@ -20,14 +20,15 @@ import os, sys
 import subprocess
 import tempfile
 import platform
+import io
 import urllib.request, urllib.parse, urllib.error
 from pathlib import Path
 from pathlib import Path
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
-dir_of_executable = os.path.dirname(__file__)
+dir_of_executable = os.path.dirname(__file__); print(dir_of_executable)
 
-__version__='2020-09-20'
+__version__='2020-09-30'
 
 
 app_name = 'youtube-dl-qt'
@@ -146,7 +147,6 @@ class Configure:
 
 class YoutubeDownload:
 	def __init__(self):
-		pass
 		self.youtube_dl = Configure().set_file_youtube_dl()
 
 	def exec_download(self, url):
@@ -189,6 +189,8 @@ class MainWindow(QtWidgets.QWidget):
 		self.buttonUrlText = QtWidgets.QLineEdit(self)
 		self.buttonShowAbout = QtWidgets.QLabel()
 		self.buttonShowDirDownload = QtWidgets.QLabel()
+		# creating progress bar 
+		self.pbar = QtWidgets.QProgressBar(self)
 		self.buttonSelectDestination = QtWidgets.QPushButton('Alterar pasta', self)
 		self.buttonSelectDestination.clicked.connect(self.selectFolder)
 		self.buttonDownload = QtWidgets.QPushButton('Baixar', self)
@@ -200,6 +202,7 @@ class MainWindow(QtWidgets.QWidget):
 		layout.addWidget(self.buttonUrlText)
 		layout.addWidget(self.buttonShowAbout)
 		layout.addWidget(self.buttonShowDirDownload)
+		layout.addWidget(self.pbar)
 		layout.addWidget(self.buttonSelectDestination)
 		layout.addWidget(self.buttonDownload)
 		layout.addWidget(self.buttonExit)
@@ -207,18 +210,60 @@ class MainWindow(QtWidgets.QWidget):
 		self.buttonShowAbout.setText('Youtube Download - 1.0 Alpha')
 		self.dir_downoload = Configure().get_dir_download()
 		self.buttonShowDirDownload.setText(f'Salvar em: {self.dir_downoload}')
+
+		self.youtube_dl = Configure().set_file_youtube_dl()
 		
 	def getUrl(self):
 		return self.buttonUrlText.text()
 
 	def run_download(self):
-		action = YoutubeDownload().exec_download(self.getUrl())
-		if action == 0:
-			MessageWindow().msgOK('Download finalizado')
-		else:
-			MessageWindow().msgOK(action)
+		# youtube-dl --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" https://www.youtube.com/watch?v=HgK8wD6KOQo
+		
+		# Verificar se o youtube-dl foi baixado no diretório de cache.
+		Configure().get_youtube_dl()
+
+		# Usar a Classe Configure para obter o diretório de download dos vídeos.
+		destination = Configure().get_dir_download()
+		os.chdir(destination)
+		print(f'Baixando ... {self.getUrl()}')
+		# os.system(f'{self.youtube_dl} --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" {url}')
+		# dow = subprocess.getstatusoutput(f'{self.youtube_dl} --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" {url}')
+
+		# https://www.youtube.com/watch?v=HgK8wD6KOQo
+		# https://www.youtube.com/watch?v=EuDQNOnutLQ
+		OutPut = subprocess.Popen(
+		['youtube-dl', 
+		'--no-playlist', 
+		'--continue', 
+		'--format', 
+		'mp4', 
+		'-o', 
+		'%(title)s.%(ext)s', 
+		self.getUrl()], 
+		stdout=subprocess.PIPE
+		)
+
+		for line in io.TextIOWrapper(OutPut.stdout, encoding="utf-8"):  # or another encoding
+			# do something with line
+			if '%' in line:
+				progress = line.split()[1].replace('%', '')
+				print(f'\r{progress}', end='')
+				if (progress != '100.0') and (progress != '100'):
+					progress = progress[0: progress.find('.')]
+					progress = int(progress)
+					# setting value to progress bar 	
+					self.pbar.setValue(progress)
+				else:
+					self.pbar.setValue(100)
+					MessageWindow().msgOK('OK')
+					break
+		print() 
 
 	def selectFolder(self):
+		'''
+		Usar janela do navegador de arquivos para selecionar uma pasta de destion
+		para download dos vídeos.
+		'''
 		select_dir = QtWidgets.QFileDialog.getExistingDirectory(
 						None, 
 						'Selecione um diretório', 
@@ -229,7 +274,11 @@ class MainWindow(QtWidgets.QWidget):
 		self.dir_downoload = Configure().get_dir_download()
 		self.buttonShowDirDownload.setText(f'Salvar em: {self.dir_downoload}')
 
-	def selectVideoFile(self):
+	def selectFile(self):
+		'''
+		Este método está NÃO está em uso no momento.
+		serve para selecionar o nome do arquivo antes de baixar.
+		'''
 		options = QtWidgets.QFileDialog.Options()
 		options |= QtWidgets.QFileDialog.DontUseNativeDialog
 		fileName= QtWidgets.QFileDialog.getSaveFileName(
@@ -242,6 +291,7 @@ class MainWindow(QtWidgets.QWidget):
 			return f
 		else:
 			return None
+
 
 	def clickExit(self):
 		'''
