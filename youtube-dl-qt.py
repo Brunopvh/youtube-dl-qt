@@ -41,6 +41,20 @@ class MessageWindow:
 		self.msgBox.setText(text)
 		self.msgBox.exec()
 
+class MsgBox:
+	'''
+	https://stackoverflow.com/questions/40227047/python-pyqt5-how-to-show-an-error-message-with-pyqt5
+	'''
+	def __init__(self):
+		self.msg_window = QtWidgets.QMessageBox()
+
+	def error(self, text=''):
+		self.msg_window.setIcon(QtWidgets.QMessageBox.Critical)
+		self.msg_window.setText(text)
+		#self.msg.setInformativeText('More information')
+		self.msg_window.setWindowTitle("Error")
+		self.msg_window.exec_()
+
 
 class MainWindow(QtWidgets.QWidget):
 	def __init__(self):
@@ -53,7 +67,6 @@ class MainWindow(QtWidgets.QWidget):
 		self.buttonUrlText = QtWidgets.QLineEdit(self)
 		self.buttonShowAbout = QtWidgets.QLabel()
 		self.buttonShowDirDownload = QtWidgets.QLabel()
-		# creating progress bar 
 		self.pbar = QtWidgets.QProgressBar(self)
 		self.buttonSelectDestination = QtWidgets.QPushButton('Alterar pasta', self)
 		self.buttonSelectDestination.clicked.connect(self.selectFolder)
@@ -99,6 +112,7 @@ class MainWindow(QtWidgets.QWidget):
 		# Verificar se a lista de url contém pelo menos um url adicionado.
 		if len(self.list_urls) < 1:
 			print('Adicione pelo menos um link de vídeo na caixa superior.')
+			MessageWindow().msgOK('Adicione pelo menos um link de vídeo na caixa superior.')
 			return False
 
 		# Prosseguir com o download.
@@ -116,7 +130,9 @@ class MainWindow(QtWidgets.QWidget):
 			stdout=subprocess.PIPE
 			)
 
+			Erro = True
 			for line in io.TextIOWrapper(OutPut.stdout, encoding="utf-8"):
+				print(line)
 				if '%' in line:
 					progress = line.split()[1].replace('%', '')
 					print(f'\r{progress}', end='')
@@ -127,9 +143,15 @@ class MainWindow(QtWidgets.QWidget):
 						self.pbar.setValue(progress)
 					else:
 						self.pbar.setValue(100)
-						MessageWindow().msgOK('OK')
+						Erro = False
 						break
+					
 			print()
+			if Erro == True:
+				MsgBox().error(f'Falha no download de ... {url}')
+				return False
+			elif Erro == False:
+				MessageWindow().msgOK('Download(s) finalizado(s)')
 
 	def add_url(self):
 		'''
@@ -138,9 +160,11 @@ class MainWindow(QtWidgets.QWidget):
 		url = self.getUrl()
 		if url == '':
 			print('Digite um URL de vídeo na caixa superior')
+			MessageWindow().msgOK('Adicione um url de download na caixa superior.')
 		else:
 			self.list_urls.append(url)
-			print(f'URL adicionada ... {self.list_urls}')
+			self.buttonUrlText.setText('')
+			print(f'URL adicionada ... {url}')
 		 
 	def selectFolder(self):
 		'''
