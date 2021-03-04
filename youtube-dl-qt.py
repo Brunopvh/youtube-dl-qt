@@ -27,6 +27,9 @@ dir_of_executable = os.path.dirname(__file__)
 dir_of_executable = os.path.abspath(os.path.join(dir_of_executable)); print(f'=> {dir_of_executable}')
 sys.path.insert(0, dir_of_executable)
 from lib.configure import Configure
+from lib.userconfig import SetUserConfig
+
+exit()
 
 __version__ = '2020-10-02'
 
