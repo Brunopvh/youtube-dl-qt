@@ -7,6 +7,7 @@ Este programa e um GUI gráfico que usa o youtube-dl para baixar vídes do youtu
 Configuração:
    Debian/Ubuntu
 	  $ sudo apt install python3-pyqt5
+	    
 
    Linux
 	  $ pip3 install PyQt5
@@ -19,8 +20,6 @@ Configuração:
 import os, sys
 import subprocess
 import io
-import urllib.request, urllib.parse, urllib.error
-from pathlib import Path
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 dir_of_executable = os.path.dirname(__file__)
