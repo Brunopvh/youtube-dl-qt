@@ -24,14 +24,18 @@ from pathlib import Path
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 dir_of_executable = os.path.dirname(__file__)
-dir_of_executable = os.path.abspath(os.path.join(dir_of_executable)); print(f'=> {dir_of_executable}')
-sys.path.insert(0, dir_of_executable)
-from lib.configure import Configure
-from lib.userconfig import SetUserConfig
+dir_of_executable = os.path.abspath(os.path.join(dir_of_executable))
+dir_local_libs = os.path.abspath(os.path.join(dir_of_executable, 'lib'))
+sys.path.insert(0, dir_local_libs)
+os.chdir(dir_of_executable)
 
-exit()
+from configure import Configure
+from userconfig import UserDirs
 
-__version__ = '2020-10-02'
+__version__ = '2021-03-05'
+
+appcfg = Configure()
+
 
 class MessageWindow:
 	'''
@@ -90,9 +94,10 @@ class MainWindow(QtWidgets.QWidget):
 		layout.addWidget(self.buttonDownload)
 		layout.addWidget(self.buttonExit)
 
+		self.buttonUrlText.setText('Adicione uma url aqui - em seguida clique no botão "add-url"')
 		self.buttonShowAbout.setText('Youtube Download - 1.0 Alpha')
-		self.dir_downoload = Configure().get_dir_download()
-		self.youtube_dl = Configure().set_file_youtube_dl()
+		self.youtube_dl = appcfg.path_youtube_dl
+		self.dir_downoload = appcfg.get_dir_download()
 		self.buttonShowDirDownload.setText(f'Salvar em: {self.dir_downoload}')
 		# Lista com url dos vídeos a serem baixados.
 		self.list_urls = []
@@ -106,11 +111,11 @@ class MainWindow(QtWidgets.QWidget):
 		youtube-dl --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" URL
 		'''
 		# Verificar se o youtube-dl foi baixado no diretório de cache do usuário.
-		if Configure().get_youtube_dl() != True:
+		if os.path.isfile(appcfg.path_youtube_dl) == False:
 			return False
 
-		os.chdir(self.dir_downoload)
-		print(f'Salvando vídeos em ... {self.dir_downoload}')
+		os.chdir(appcfg.get_dir_download())
+		print(f'Salvando vídeos em ... {appcfg.get_dir_download()}')
 
 		# Verificar se a lista de url contém pelo menos um url adicionado.
 		if len(self.list_urls) < 1:
@@ -154,7 +159,8 @@ class MainWindow(QtWidgets.QWidget):
 				MsgBox().error(f'Falha no download de ... {url}')
 				return False
 			elif Erro == False:
-				MessageWindow().msgOK('Download(s) finalizado(s)')
+				#MessageWindow().msgOK('Download(s) finalizado(s)')
+				pass
 
 	def add_url(self):
 		'''
@@ -171,7 +177,7 @@ class MainWindow(QtWidgets.QWidget):
 		 
 	def selectFolder(self):
 		'''
-		Usar janela do navegador de arquivos para selecionar uma pasta de destion
+		Usar janela do navegador de arquivos para selecionar uma pasta de destino
 		para download dos vídeos.
 		'''
 		select_dir = QtWidgets.QFileDialog.getExistingDirectory(
@@ -180,8 +186,9 @@ class MainWindow(QtWidgets.QWidget):
 						self.dir_downoload, 
 						QtWidgets.QFileDialog.ShowDirsOnly
 						)
-		Configure().set_dir_download(select_dir)
-		self.dir_downoload = Configure().get_dir_download()
+
+		appcfg.set_dir_download(select_dir) # Gravar no arquivo de configuração.
+		self.dir_downoload = select_dir     # Alterar o atributo.
 		self.buttonShowDirDownload.setText(f'Salvar em: {self.dir_downoload}')
 
 	def createFile(self):
