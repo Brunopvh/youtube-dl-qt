@@ -5,34 +5,41 @@ import os, sys
 from userconfig import UserDirs
 
 user_conf = UserDirs(True)
-user_conf.appname = 'youtube-dl-qt'
+user_conf .appname = 'youtube-dl-qt'
 
-class Configure(object):
+class Configure():
 	'''
 	Classe para configurações básicas do sistema operacional, diretórios
 	pastas e arquivos necessários para este programa.
 	'''
 	def __init__(self):
-
+		self.appname = 'youtube-dl-qt'
 		self.kernel_type = user_conf.kernel_type
 		self.dir_temp = user_conf.dir_temp
 		self.file_temp = user_conf.file_temp
 		self.dir_cache = user_conf.get_dir_cache()
 		self.dir_config = user_conf.get_dir_config()
 		self.file_config = user_conf.get_file_config()
-		self.destination_videos = user_conf.dir_home 
+		self.destination_videos = user_conf.dir_home
+		self.path_youtube_dl = os.path.abspath(os.path.join(self.dir_cache, 'youtube-dl')) 
 
 		if self.kernel_type == 'Linux':
-			self.path_youtube_dl = os.path.abspath(os.path.join(self.dir_cache, 'youtube-dl'))
 			self.url_youtube_dl = 'https://yt-dl.org/downloads/latest/youtube-dl'
 		elif self.kernel_type == 'Windows':
-			self.path_youtube_dl = os.path.abspath(os.path.join(self.dir_cache, 'youtube-dl.exe'))
+			self.path_youtube_dl += '.exe'
 			self.url_youtube_dl = 'https://yt-dl.org/downloads/2020.07.28/youtube-dl.exe'
 			self.url_visual_c = 'https://download.microsoft.com/download/5/B/C/5BC5DBB3-652D-4DCE-B14A-475AB85EEF6E/vcredist_x86.exe'
 		else:
 			print(f'{__class__.__name__}: seu sistema não é suportado por este programa.')
 			sys.exit()
 
+	@property
+	def url_youtube_dl(self):
+		return self._url_youtube_dl
+
+	@url_youtube_dl.setter
+	def url_youtube_dl(self, url):
+		self._url_youtube_dl = url
 
 	#Getter
 	@property
