@@ -5,7 +5,7 @@ import os, sys
 from userconfig import UserDirs
 
 user_conf = UserDirs(True)
-user_conf .appname = 'youtube-dl-qt'
+user_conf.appname = 'youtube-dl-qt'
 
 class Configure():
 	'''
@@ -32,6 +32,13 @@ class Configure():
 		else:
 			print(f'{__class__.__name__}: seu sistema não é suportado por este programa.')
 			sys.exit()
+
+		if os.path.isdir(self.dir_config) == False:
+			os.makedirs(self.dir_config)
+
+		if os.path.isdir(self.dir_cache) == False:
+			os.makedirs(self.dir_cache)
+
 
 	@property
 	def url_youtube_dl(self):

@@ -36,7 +36,7 @@ sys.path.insert(0, dir_local_libs)
 from configure import Configure
 from userconfig import UserDirs
 
-__version__ = '2021-03-05'
+__version__ = '2021-03-20'
 
 appcfg = Configure()
 
@@ -110,8 +110,7 @@ class YtQWin(QWidget):
 		youtube-dl --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" URL
 		'''
 		# Verificar se o youtube-dl foi baixado no diretório de cache do usuário.
-		if os.path.isfile(appcfg.path_youtube_dl) == False:
-			return False
+		appcfg.get_youtube_dl()
 
 		os.chdir(appcfg.get_dir_download())
 		print(f'Salvando vídeos em ... {appcfg.get_dir_download()}')
