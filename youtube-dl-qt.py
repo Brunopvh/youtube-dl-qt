@@ -30,11 +30,10 @@ from PyQt5.QtWidgets import (
 dir_of_executable = os.path.dirname(os.path.realpath(__file__))
 dir_of_executable = os.path.abspath(os.path.join(dir_of_executable))
 dir_local_libs = os.path.abspath(os.path.join(dir_of_executable, 'lib'))
-sys.path.insert(0, dir_local_libs)
+sys.path.insert(0, dir_of_executable)
 #os.chdir(dir_local_libs)
 
-from configure import Configure
-from userconfig import UserDirs
+from lib.configure import Configure
 
 __version__ = '2021-03-20'
 

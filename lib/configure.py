@@ -2,26 +2,27 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
-from userconfig import UserDirs
+from platform import system as kernel_type
+from lib.userconf import ConfigAppDirs
 
-user_conf = UserDirs(True)
-user_conf.appname = 'youtube-dl-qt'
+KERNEL_TYPE = kernel_type()
+appname = 'youtube-dl-qt'
 
-class Configure():
+class Configure(ConfigAppDirs):
 	'''
 	Classe para configurações básicas do sistema operacional, diretórios
 	pastas e arquivos necessários para este programa.
 	'''
 	def __init__(self):
-		self.appname = 'youtube-dl-qt'
-		self.kernel_type = user_conf.kernel_type
-		self.dir_temp = user_conf.dir_temp
-		self.file_temp = user_conf.file_temp
-		self.dir_cache = user_conf.get_dir_cache()
-		self.dir_config = user_conf.get_dir_config()
-		self.file_config = user_conf.get_file_config()
-		self.destination_videos = user_conf.dir_home
-		self.path_youtube_dl = os.path.abspath(os.path.join(self.dir_cache, 'youtube-dl')) 
+		super().__init__(appname)
+		
+		self.kernel_type = KERNEL_TYPE
+		self.create_dirs() # Criar diretórios do usuário
+		self.create_common_dirs() # Criar diretórios deste app.
+		self.file_config = self.get_file_config()
+		self.__destination_videos = self.dir_home
+		self.path_youtube_dl = os.path.join(self.dir_cache, 'youtube-dl')
+		self.setDestinationVideos()
 
 		if self.kernel_type == 'Linux':
 			self.url_youtube_dl = 'https://yt-dl.org/downloads/latest/youtube-dl'
@@ -32,41 +33,35 @@ class Configure():
 		else:
 			print(f'{__class__.__name__}: seu sistema não é suportado por este programa.')
 			sys.exit()
-
-		if os.path.isdir(self.dir_config) == False:
-			os.makedirs(self.dir_config)
-
-		if os.path.isdir(self.dir_cache) == False:
-			os.makedirs(self.dir_cache)
-
-
+	# Getter
 	@property
 	def url_youtube_dl(self):
 		return self._url_youtube_dl
 
+	# Setter
 	@url_youtube_dl.setter
 	def url_youtube_dl(self, url):
 		self._url_youtube_dl = url
 
-	#Getter
-	@property
-	def destination_videos(self):
-		return self._destination_videos
-
-	@destination_videos.setter
-	def destination_videos(self, destination):
+	def setDestinationVideos(self):
 		'''
-		Setar o atributo self.destination_videos em seguida gravar o caminho no
+		Setar o atributo self.__destination_videos em seguida gravar o caminho no
 		arquivo de configuração.
 		'''
-		if os.path.isdir(destination) == True:
-			self._destination_videos = destination
+		if os.path.isdir(self.__destination_videos) == False:
+			print(f'O diretório não existe ... {self.__destination_videos}')
+			sys.exit(1)
+
+		# Verificar a existência do diretório de configuração deste programa.
+		if os.path.isdir(self.get_dir_config()) == False:
+			print(f'O diretório de configuração ... {self.get_dir_config()} não existe')
+			sys.exit()
 		   
 		# Se o caminho de downloads ainda não existir no arquivo de 
 		# configuração, ele será gravado no arquivo agora.
 		if os.path.isfile(self.file_config) == False:
 			with open(self.file_config, 'w') as f:
-				f.write(f'save_path={self.destination_videos}\n')
+				f.write(f'save_path={self.__destination_videos}\n')
 			return True
 			
 		# Se o arquivo já existir o programa irá ler o conteúdo da linha que
@@ -76,7 +71,7 @@ class Configure():
 		
 		for l in lines:
 			if 'save_path=' in l:
-				self._destination_videos = l.replace('\n', '').replace('save_path=', '')
+				self.__destination_videos = l.replace('\n', '').replace('save_path=', '')
 				break
 
 	def set_dir_download(self, destination):
@@ -84,17 +79,23 @@ class Configure():
 			print(f'O diretório não existe ... {destination}')
 			return False
 
+		self.__destination_videos = destination
 		with open(self.file_config, 'w') as f:
-			f.write(f'save_path={destination}')
+			f.write(f'save_path={self.__destination_videos}')
 
 	def get_dir_download(self) -> str:
-		with open(self.file_config, 'rt') as f:
-			lines = f.readlines()
-
-		for l in lines:
-			if 'save_path' in l:
-				return l.replace('\n', '').replace('save_path=', '')
-				break
+		try:
+			with open(self.file_config, 'rt') as f:
+				lines = f.readlines()
+		except:
+			print(__class__.__name__, "erro ao tentar abrir o arquivo", self.file_config)
+			return False
+		else:
+			for l in lines:
+				if 'save_path' in l:
+					self.__destination_videos = l.replace('\n', '').replace('save_path=', '')
+					break
+			return self.__destination_videos
 
 	def get_youtube_dl(self):
 		'''	
@@ -104,14 +105,13 @@ class Configure():
 			return True
 
 		import urllib.request
-
 		print(f'> Entrando no diretório ... {self.dir_cache}'); os.chdir(self.dir_cache)
 		print(f'> Conectando ... {self.url_youtube_dl}', end=' ')
 
 		try:
 			urllib.request.urlretrieve(self.url_youtube_dl, self.path_youtube_dl)
 		except Exception as err:
-			print(type(err))
+			print(__class.__name__, err)
 			return False
 		else:
 			print('OK')
