@@ -102,9 +102,16 @@ class YtWindow(QMainWindow):
 		exitAct.setShortcut('Ctrl+Q')
 		exitAct.setStatusTip('Sair do programa')
 		exitAct.triggered.connect(self.yt_widgets.clickExit)
-
-		# 2 - Adicionar ações ao menu arquivo
 		fileMenu.addAction(exitAct)
+
+		aboutMenu = menubar.addMenu('&Sobre')
+		versionMenu = aboutMenu.addMenu('Versão')
+		versionMenu.addAction(__version__)
+		authorMenu = aboutMenu.addMenu('Autor')
+		authorMenu.addAction(__author__)
+		siteMenu = aboutMenu.addMenu('Site')
+		siteMenu.addAction(__repo__)
+
 
 class YtWidgets(QWidget):
 	def __init__(self, parent=None):
@@ -193,16 +200,20 @@ class YtWidgets(QWidget):
 			return False
 
 		_list_url = self.list_urls
-		#self.list_urls.clear()
 		for url in _list_url:
 			print(f'Baixando ... {url}')
 
 			commands = [
-					self.youtube_dl, '--no-playlist', '--continue', 
-					'--format', 'mp4', 
-					'-o', '%(title)s.%(ext)s', url
+					self.youtube_dl,
+					'--no-playlist',
+					'--continue',
+					'-o', '%(title)s.%(ext)s',
+					'--format',
 					]
 
+			commands.append(self.combo_video_formats.currentText())
+			commands.append(url)
+			print('Opções de download', commands)
 			OutPut = subprocess.Popen(commands, stdout=subprocess.PIPE)
 
 			Erro = True
@@ -227,7 +238,6 @@ class YtWidgets(QWidget):
 				return False
 			elif Erro == False:
 				MessageWindow().msgOK('Download(s) finalizado(s)')
-				_list_url.clear()
 
 	def add_url(self):
 		'''
