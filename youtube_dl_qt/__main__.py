@@ -176,6 +176,7 @@ class YtWidgets(QWidget):
 		self.grid_master.addWidget(self.group_C, 2, 0)
 		self.setLayout(self.grid_master)
 
+
 	def getUrl(self):
 		return self.line_edit_url.text()
 
