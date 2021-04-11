@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Youtube-Dl-Qt
+Version=1.0
+Exec=python3 -m youtube_dl_qt
+Icon=youtube-dl-qt
+Terminal=false
+Categories=Internet;
+Type=Application
