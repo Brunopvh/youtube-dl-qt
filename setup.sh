@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ $(id -u) == 0 ]]; then
+	echo "Você não pode ser o 'root'"
+	exit 1
+fi
+
 if [[ ! -x $(command -v python3) ]]; then
 	echo -e "Instale o python3 para prosseguir."
 	echo -e "Caso tenha uma versão do python3 instalada, crie um link em PATH com o executável python3."
@@ -9,7 +14,7 @@ fi
 work_dir=$(pwd)
 _script=$(readlink -f "$0")
 dir_of_project=$(dirname $_script)
-destination_icons=~/.icons
+destination_icons=~/.local/share/icons
 destination_desktop_file=~/.local/share/applications
 cd $dir_of_project
 
