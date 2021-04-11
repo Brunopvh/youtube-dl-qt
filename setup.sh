@@ -5,6 +5,7 @@ if [[ $(id -u) == 0 ]]; then
 	exit 1
 fi
 
+
 if [[ ! -x $(command -v python3) ]]; then
 	echo -e "Instale o python3 para prosseguir."
 	echo -e "Caso tenha uma versão do python3 instalada, crie um link em PATH com o executável python3."
