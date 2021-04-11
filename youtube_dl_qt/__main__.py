@@ -20,22 +20,25 @@ Configuração:
 import os, sys
 import subprocess
 import io
-from PyQt5.QtWidgets import (
+
+try:
+	from PyQt5.QtWidgets import (
 							QApplication, QWidget, QMessageBox, QFileDialog,
 							QLineEdit, QLabel, QProgressBar, QPushButton, QVBoxLayout,
 
 							)
+except Exception as err:
+	print(err)
+	sys.exit(1)
 
  
-dir_of_executable = os.path.dirname(os.path.realpath(__file__))
-dir_of_executable = os.path.abspath(os.path.join(dir_of_executable))
-dir_local_libs = os.path.abspath(os.path.join(dir_of_executable, 'lib'))
+_script = os.path.realpath(__file__)
+dir_of_executable = os.path.dirname(_script)
 sys.path.insert(0, dir_of_executable)
-#os.chdir(dir_local_libs)
 
-from lib.configure import Configure
+from configure import Configure
 
-__version__ = '2021-03-20'
+__version__ = '0.1.0'
 
 appcfg = Configure()
 
@@ -69,7 +72,7 @@ class YtQWin(QWidget):
 
 	def setupUI(self):
 		# Definir tipo dos botões
-		self.buttonUrlText = QLineEdit(self)
+		self.buttonUrlText = QLineEdit(self, placeholderText='Adicione um url aqui')
 		self.buttonShowAbout = QLabel()
 		self.buttonShowDirDownload = QLabel()
 		self.pbar = QProgressBar(self)
@@ -92,7 +95,6 @@ class YtQWin(QWidget):
 		layout.addWidget(self.buttonDownload)
 		layout.addWidget(self.buttonExit)
 
-		self.buttonUrlText.setText('Adicione uma url aqui')
 		self.buttonShowAbout.setText('Youtube Download - 1.0 Alpha')
 		self.youtube_dl = appcfg.path_youtube_dl
 		self.dir_downoload = appcfg.get_dir_download()
@@ -231,9 +233,12 @@ class YtQWin(QWidget):
 			sys.exit()
  		'''
 	  
-if __name__=="__main__":
+def main():
 	app = QApplication(sys.argv)
 	window = YtQWin()
 	window.show()
 	sys.exit(app.exec_())
+
+if __name__== "__main__":
+	main()
 	

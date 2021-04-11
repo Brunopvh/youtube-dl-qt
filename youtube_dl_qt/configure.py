@@ -3,7 +3,7 @@
 
 import os, sys
 from platform import system as kernel_type
-from lib.userconf import ConfigAppDirs
+from userconf import ConfigAppDirs
 
 KERNEL_TYPE = kernel_type()
 appname = 'youtube-dl-qt'
