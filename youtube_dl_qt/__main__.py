@@ -19,7 +19,6 @@ Configuração:
 
 import os, sys
 import subprocess
-import io
 from threading import Thread
 try:
 	from PyQt5.QtWidgets import (
@@ -215,10 +214,10 @@ class YtWidgets(QWidget):
 			commands.append(self.combo_video_formats.currentText())
 			commands.append(url)
 			print('Opções de download', commands)
-			OutPut = subprocess.Popen(commands, stdout=subprocess.PIPE)
+			OutPut = subprocess.Popen(commands, stdout=subprocess.PIPE, encoding="utf-8")
 
 			Erro = True
-			for line in io.TextIOWrapper(OutPut.stdout, encoding="utf-8"):
+			for line in OutPut.stdout:
 				print(line)
 				if '%' in line:
 					progress = line.split()[1].replace('%', '')
