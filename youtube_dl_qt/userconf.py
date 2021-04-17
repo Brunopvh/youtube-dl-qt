@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import os	
 
@@ -10,18 +11,13 @@ class UserDirs(object):
 	def __init__(self, user=os.getlogin()):
 		from platform import system as kernel_type
 		from pathlib import Path
-
-		# Se uid for igual a 0, será usado as configurações do 'root' independênte do parâmetro 'user'.
-		if (os.geteuid() == 0):
-			self.user = 'root'
-		else:
-			self.user = user
-
 		self.kernel_type = kernel_type()
+		self.user = user
 		if (self.kernel_type == 'FreeBSD'):
-			self.dir_home = os.path.abspath(os.path.join('/usr', Path.home()))
+			self.dir_home = os.path.abspath(os.path.join('/usr', os.getenv('HOME')))
 		else:
-			self.dir_home = Path.home()
+			#self.dir_home = Path.home()
+			self.dir_home = os.getenv('HOME')
 
 		del Path
 		del kernel_type
@@ -56,6 +52,18 @@ class UserDirs(object):
 				self.dir_config = os.path.abspath(os.path.join(self.dir_home, '.config'))
 				self.dir_optional = os.path.abspath(os.path.join(self.dir_home, '.local', 'share'))
 				self.file_bashrc = os.path.abspath(os.path.join(self.dir_home, '.bashrc'))
+	@property
+	def user(self):
+		return self._user
+
+	@user.setter
+	def user(self, user):
+		# Se uid for igual a 0, será usado as configurações do 'root' independênte do parâmetro 'user'.
+		if os.name == 'posix':
+			if (os.geteuid() == 0):
+				self._user = 'root'
+			else:
+				self._user = user
 
 	def get_user_dirs(self):
 
@@ -85,8 +93,12 @@ class UserDirs(object):
 				print(__class__.__name__, 'você não tem permissão para criar ...', d)
 			except Exception as err:
 				from time import sleep
-				print(__class__.__name__, type(err), d)
-				sleep(0.5)
+				if d == "":
+					pass
+				else:
+					print(__class__.__name__, type(err))
+					print(err, '\n', d)
+					sleep(0.5)
 				del sleep
 			else:
 				pass
@@ -97,7 +109,6 @@ class ConfigAppDirs(UserDirs):
 	def __init__(self, appname, user=os.getlogin()):
 		super().__init__(user)
 		self.appname = appname
-		self.create_dirs()
 
 		import tempfile
 		self.temp_file = tempfile.NamedTemporaryFile(delete=True).name
@@ -119,6 +130,7 @@ class ConfigAppDirs(UserDirs):
 		return self.common_dirs
 
 	def create_common_dirs(self):
+		self.create_dirs() # Criar diretórios padrões do sistema.
 		_dirs = self.get_common_dirs()
 
 		for k in _dirs:
@@ -145,7 +157,7 @@ class ConfigAppDirs(UserDirs):
 		return os.path.join(self.dir_config, self.appname)
 
 	def get_file_config(self):
-		return os.path.join(self.get_dir_config(), f'{self.appname}.conf')
+		return os.path.join(self.get_dir_config(), f'{self.appname}.json')
 
 	def get_file_bashrc(self) -> str:
 		"""Retornar o caminho do bashrc para o root ou usuário."""

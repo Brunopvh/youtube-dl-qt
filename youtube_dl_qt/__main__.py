@@ -119,7 +119,7 @@ class YtWidgets(QWidget):
 		self._min_height = 180
 		self.__total_urls = 0
 
-		self.group_A = QGroupBox('Adicioner URLs abaixo')
+		self.group_A = QGroupBox('Insira URLs abaixo')
 		self.group_B =QGroupBox('Selecione a pasta de destino e o formato de vídeo')
 		self.group_C = QGroupBox('Download')
 		self.horizontal1 = QHBoxLayout()
@@ -128,8 +128,12 @@ class YtWidgets(QWidget):
 		self.grid_master = QGridLayout()
 		self.group_master = QGroupBox()
 
-		self.youtube_dl = appcfg.path_youtube_dl
-		self.dir_downoload = appcfg.get_dir_download()
+		self.pref = appcfg.get_json_config()
+		self.youtube_dl = self.pref['path_youtube_dl']
+		self.dir_downoload = self.pref['path_videos']
+		# Setar as opções de download padrão
+		self._opts_download = ['--continue', '--no-playlist', '-o', '"%(title)s.%(ext)s"']
+
 		# Lista com url dos vídeos a serem baixados.
 		self.list_urls = []
 
@@ -137,13 +141,13 @@ class YtWidgets(QWidget):
 
 	def setupUI(self):
 		# Widigets do primeiro grupo
-		self.line_edit_url = QLineEdit(self, placeholderText='Adicione um url aqui')
+		self.line_edit_url = QLineEdit(self, placeholderText='URL aqui')
 		self.line_edit_url.setFixedSize(550, 50)
 		self.btn_add_url = QPushButton('Adicionar', self)
 		self.btn_add_url.setFixedSize(70, 50)
 		self.btn_add_url.clicked.connect(self.add_url)
-		self.grid1.addWidget(self.btn_add_url, 0, 0)
-		self.grid1.addWidget(self.line_edit_url, 0, 1)
+		self.grid1.addWidget(self.line_edit_url, 0, 0)
+		self.grid1.addWidget(self.btn_add_url, 0, 1)
 		self.group_A.setLayout(self.grid1)
 		self.group_A.setFixedSize(self._min_width, 90)
 
@@ -188,10 +192,10 @@ class YtWidgets(QWidget):
 		youtube-dl --no-playlist --continue --format mp4 -o "%(title)s.%(ext)s" URL
 		'''
 		# Verificar se o youtube-dl foi baixado no diretório de cache do usuário.
-		appcfg.get_youtube_dl()
-
-		os.chdir(appcfg.get_dir_download())
-		print(f'Salvando vídeos em ... {appcfg.get_dir_download()}')
+		appcfg.download_youtube_dl_bin()
+		os.chdir(self.dir_downoload)
+		print('Preferências')
+		print(self.pref)
 
 		# Verificar se a lista de url contém pelo menos um url adicionado.
 		if len(self.list_urls) < 1:
@@ -203,6 +207,7 @@ class YtWidgets(QWidget):
 		for url in _list_url:
 			print(f'Baixando ... {url}')
 
+			'''
 			commands = [
 					self.youtube_dl,
 					'--no-playlist',
@@ -210,7 +215,10 @@ class YtWidgets(QWidget):
 					'-o', '%(title)s.%(ext)s',
 					'--format',
 					]
-
+			'''
+			commands = self._opts_download
+			commands.insert(0, self.youtube_dl)
+			commands.append('--format')
 			commands.append(self.combo_video_formats.currentText())
 			commands.append(url)
 			print('Opções de download', commands)
@@ -218,7 +226,6 @@ class YtWidgets(QWidget):
 
 			Erro = True
 			for line in OutPut.stdout:
-				print(line)
 				if '%' in line:
 					progress = line.split()[1].replace('%', '')
 					print(f'\r{progress}', end='')
@@ -268,7 +275,7 @@ class YtWidgets(QWidget):
 						QFileDialog.ShowDirsOnly
 						)
 
-		appcfg.set_dir_download(select_dir) # Gravar no arquivo de configuração.
+		appcfg.update_preference('path_videos', select_dir) # Gravar no arquivo de configuração.
 		self.dir_downoload = select_dir     # Alterar o atributo.
 		self.label_dir_download.setText(f'Salvar em: {self.dir_downoload}')
 
